@@ -21,6 +21,8 @@ def main():
         for item in all_data:
             f.write(str(item))
             f.write("\n")
+        print("{:.2f}".format(page/161 * 100),"%")
+    print("File Completed")
     f.close()
 
 #If running to get functions dont run main
