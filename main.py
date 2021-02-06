@@ -24,11 +24,11 @@ def main():
               "3&fields=id,school.state,school.name,school.city,2018.student.size," \
               "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
               "2016.repayment.3_yr_repayment.overall"
-        all_data = get_data(url,page)
+        all_data = get_data(url, page)
         for item in all_data:
             f.write(str(item))
             f.write("\n")
-        print("{:.2f}".format(page/161 * 100),"%")
+        print("{:.2f}".format(page/161 * 100), "%")
     print("File Completed")
     f.close()
 
@@ -37,3 +37,4 @@ def main():
 # If running to run, run main
 if __name__ == '__main__':
     main()
+
