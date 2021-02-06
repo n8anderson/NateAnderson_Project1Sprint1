@@ -24,6 +24,8 @@ def get_data(url: str):
     return all_data
 
 
+# Checks to see whether there is another page to pull data from
+# Returns True if there is and False if there isn't
 def next_page(page, total_page):
     if page == total_page:
         return False
