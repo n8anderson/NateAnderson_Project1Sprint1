@@ -19,7 +19,7 @@ def get_data(url: str, page):
 # Main function that saves data from the website into a .txt file
 def main():
     f = open("School_Data.txt", "w")
-    for page in range(1, 161):
+    for page in range(0, 161):
         url = "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.degrees_awarded.predominant=2," \
               "3&fields=id,school.state,school.name,school.city,2018.student.size," \
               "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
