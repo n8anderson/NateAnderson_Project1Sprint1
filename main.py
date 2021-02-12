@@ -1,5 +1,7 @@
 import requests
 import secrets
+import sqlite3
+from typing import Tuple
 
 
 # Actually gets the data from one page and saves it to an array
@@ -22,6 +24,32 @@ def get_data(url: str):
             page += 1
     print("Finished Loading.")
     return all_data
+
+
+def open_db(filename: str) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
+    db_conn = sqlite3.connect(filename)  # Connect to a db or create a new one
+    cursor = db_conn.cursor()  # Get ready to read or write data
+    return db_conn, cursor
+
+
+def close_db(conn: sqlite3.Connection):
+    conn.commit()  # Save changes
+    conn.close()
+
+
+def setup_db(cursor: sqlite3.Cursor):
+    cursor.execute('''CREATE TABLE IF NOT EXISTS schools(
+    school_id INTEGER PRIMARY KEY,
+    school_name TEXT NOT NULL,
+    school_state TEXT NOT NULL,
+    school_city TEXT NOT NULL,
+    student_size_2018 INTEGER DEFAULT 0,
+    student_size_2017 INTEGER DEFAULT 0,
+    earnings_2017 INTEGER DEFAULT 0,
+    repayment_2016 INTEGER DEFAULT 0
+    ''')
+
+
 
 
 # Checks to see whether there is another page to pull data from
