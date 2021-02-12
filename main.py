@@ -19,7 +19,7 @@ def get_data(url: str):
         json_data = response.json()
         results = json_data['results']
         all_data.extend(results)
-        another_page = next_page(page, int(json_data["metadata"]["total"])//int(json_data["metadata"]["per_page"]))
+        another_page = next_page(page, int(json_data["metadata"]["total"]) // int(json_data["metadata"]["per_page"]))
         if another_page:
             page += 1
     print("Finished Loading.")
@@ -57,9 +57,11 @@ def populate_db(cursor: sqlite3.Cursor, schools):
     for item in schools:
         cursor.execute(f"""INSERT INTO SCHOOLS (school_id, school_name, school_state, school_city,
         student_size_2018, student_size_2017, earnings_2017, repayment_2016) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (item['id'], item['school.name'], item['school.state'], item['school.city'], item['2018.student.size'],
-         item['2017.student.size'], item['2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line'],
-         item['2016.repayment.3_yr_repayment.overall']))
+                       (item['id'], item['school.name'], item['school.state'], item['school.city'],
+                        item['2018.student.size'],
+                        item['2017.student.size'],
+                        item['2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line'],
+                        item['2016.repayment.3_yr_repayment.overall']))
 
 
 # Checks to see whether there is another page to pull data from
@@ -68,7 +70,7 @@ def next_page(page, total_page):
     if page == total_page:
         return False
     else:
-        print("{:.2f}".format(page/total_page * 100), "%")
+        print("{:.2f}".format(page / total_page * 100), "%")
         return True
 
 
