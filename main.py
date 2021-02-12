@@ -26,19 +26,22 @@ def get_data(url: str):
     return all_data
 
 
+# Opens DB
 def open_db(filename: str) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
     db_conn = sqlite3.connect(filename)  # Connect to a db or create a new one
     cursor = db_conn.cursor()  # Get ready to read or write data
     return db_conn, cursor
 
 
+# Closes DB
 def close_db(conn: sqlite3.Connection):
     conn.commit()  # Save changes
     conn.close()
 
 
+# Setup the database with a table called schools that holds all the data
 def setup_db(cursor: sqlite3.Cursor):
-    cursor.execute('''CREATE TABLE IF NOT EXISTS schools(
+    cursor.execute("""CREATE TABLE IF NOT EXISTS schools(
     school_id INTEGER PRIMARY KEY,
     school_name TEXT NOT NULL,
     school_state TEXT NOT NULL,
@@ -46,10 +49,17 @@ def setup_db(cursor: sqlite3.Cursor):
     student_size_2018 INTEGER DEFAULT 0,
     student_size_2017 INTEGER DEFAULT 0,
     earnings_2017 INTEGER DEFAULT 0,
-    repayment_2016 INTEGER DEFAULT 0
-    ''')
+    repayment_2016 INTEGER DEFAULT 0);""")
 
 
+# Populates the DB with the schools pulled from the API website
+def populate_db(cursor: sqlite3.Cursor, schools):
+    for item in schools:
+        cursor.execute(f"""INSERT INTO SCHOOLS (school_id, school_name, school_state, school_city,
+        student_size_2018, student_size_2017, earnings_2017, repayment_2016) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (item['id'], item['school.name'], item['school.state'], item['school.city'], item['2018.student.size'],
+         item['2017.student.size'], item['2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line'],
+         item['2016.repayment.3_yr_repayment.overall']))
 
 
 # Checks to see whether there is another page to pull data from
@@ -64,18 +74,16 @@ def next_page(page, total_page):
 
 # Main function that saves data from the website into a .txt file
 def main():
-    f = open("School_Data.txt", "w")
+    # f = open("School_Data.txt", "w")
     url = "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.degrees_awarded.predominant=2," \
           "3&fields=id,school.state,school.name,school.city,2018.student.size," \
           "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
           "2016.repayment.3_yr_repayment.overall"
     all_data = get_data(url)
-    print("Writing File.")
-    for item in all_data:
-        f.write(str(item))
-        f.write("\n")
-    print("File Completed.")
-    f.close()
+    conn, cursor = open_db('school_db.sqlite')
+    setup_db(cursor)
+    populate_db(cursor, all_data)
+    close_db(conn)
 
 
 # If running to get functions dont run main
