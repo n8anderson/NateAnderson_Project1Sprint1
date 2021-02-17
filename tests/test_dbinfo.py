@@ -1,5 +1,4 @@
 import main
-import requests
 
 
 def test_getschooldata():
