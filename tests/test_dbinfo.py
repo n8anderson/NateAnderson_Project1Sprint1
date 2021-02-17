@@ -1,6 +1,7 @@
 import main
 
 
+# Test to get the information from the API website
 def test_getschooldata():
     url = "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.degrees_awarded.predominant=2," \
           "3&fields=id,school.state,school.name,school.city,2018.student.size," \
@@ -11,6 +12,7 @@ def test_getschooldata():
     assert num_schools > 1000
 
 
+# Test to insert a school into a new database, and make sure it can be pulled
 def test_db():
     schools = [{'id': '1234', 'school.state': 'MA', 'school.name': 'Bridgewater State University',
                 'school.city': 'Bridgewater',
