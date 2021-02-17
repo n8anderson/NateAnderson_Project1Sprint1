@@ -41,6 +41,7 @@ def close_db(conn: sqlite3.Connection):
 
 # Setup the database with a table called schools that holds all the data
 def setup_db(cursor: sqlite3.Cursor):
+    cursor.execute("""DROP TABLE IF EXISTS schools""")
     cursor.execute("""CREATE TABLE IF NOT EXISTS schools(
     school_id INTEGER PRIMARY KEY,
     school_name TEXT NOT NULL,
