@@ -56,7 +56,7 @@ def setup_db(cursor: sqlite3.Cursor):
 # Populates the DB with the schools pulled from the API website
 def populate_db(cursor: sqlite3.Cursor, schools):
     for item in schools:
-        cursor.execute(f"""INSERT INTO SCHOOLS (school_id, school_name, school_state, school_city,
+        cursor.execute("""INSERT INTO SCHOOLS (school_id, school_name, school_state, school_city,
         student_size_2018, student_size_2017, earnings_2017, repayment_2016) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                        (item['id'], item['school.name'], item['school.state'], item['school.city'],
                         item['2018.student.size'],
