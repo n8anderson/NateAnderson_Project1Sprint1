@@ -107,11 +107,11 @@ def main():
           "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
           "2016.repayment.3_yr_repayment.overall"
     xls_file = 'state_M2019_dl.xlsx'
-    #all_data = get_data(url)
+    all_data = get_data(url)
     employment = get_xlsx(xls_file)
     conn, cursor = open_db('school_db.sqlite')
     setup_db(cursor)
-    #populate_db(cursor, all_data)
+    populate_db(cursor, all_data)
     setup_occdb(cursor)
     populate_employment(cursor, employment)
     close_db(conn)

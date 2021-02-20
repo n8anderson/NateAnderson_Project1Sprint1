@@ -17,6 +17,19 @@ def test_getschooldata():
 def test_getexcel():
     excel_file = 'data_testfile.xlsx'
     test_data = main.get_xlsx(excel_file)
+    data = []
+    for item in test_data.values:
+        data.append(item[8])
+    assert len(data) == 50
+
+
+# Test to see if it creates the data in the database.
+# Pushes the excel data to database and pulls it using fetch all
+# creates an array of occupational titles, if length is 50,
+# then it passes
+def test_occudb():
+    excel_file = 'data_testfile.xlsx'
+    test_data = main.get_xlsx(excel_file)
     conn, cursor = main.open_db('test_db.sqlite')
     main.setup_occdb(cursor)
     main.populate_employment(cursor, test_data)
@@ -25,9 +38,7 @@ def test_getexcel():
     main.close_db(conn)
     occu_titles = []
     for item in data:
-        if occu_titles.__contains__(item[2]):
-            continue
-        else:
+        if not occu_titles.__contains__(item[2]):
             occu_titles.append(item[2])
     assert len(occu_titles) == 50
 
