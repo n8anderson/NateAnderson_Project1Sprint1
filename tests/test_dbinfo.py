@@ -13,8 +13,23 @@ def test_getschooldata():
 
 
 # Test to see if can get the information from excel data
+# Passes if it gets all 50 occupational titles from Alabama
 def test_getexcel():
-
+    excel_file = 'data_testfile.xlsx'
+    test_data = main.get_xlsx(excel_file)
+    conn, cursor = main.open_db('test_db.sqlite')
+    main.setup_occdb(cursor)
+    main.populate_employment(cursor, test_data)
+    cursor.execute("""SELECT * FROM employment""")
+    data = cursor.fetchall()
+    main.close_db(conn)
+    occu_titles = []
+    for item in data:
+        if occu_titles.__contains__(item[2]):
+            continue
+        else:
+            occu_titles.append(item[2])
+    assert len(occu_titles) == 50
 
 
 # Test to insert a school into a new database, and make sure it can be pulled
