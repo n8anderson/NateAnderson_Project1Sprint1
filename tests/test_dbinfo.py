@@ -12,6 +12,11 @@ def test_getschooldata():
     assert num_schools > 1000
 
 
+# Test to see if can get the information from excel data
+def test_getexcel():
+
+
+
 # Test to insert a school into a new database, and make sure it can be pulled
 def test_db():
     schools = [{'id': '1234', 'school.state': 'MA', 'school.name': 'Bridgewater State University',

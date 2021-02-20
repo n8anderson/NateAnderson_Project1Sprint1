@@ -2,7 +2,6 @@ import requests
 import secrets
 import sqlite3
 import pandas as pd
-import openpyxl
 from typing import Tuple
 
 
@@ -52,6 +51,7 @@ def setup_occdb(cursor: sqlite3.Cursor):
     cursor.execute("""DROP TABLE IF EXISTS employment""")
     cursor.execute("""CREATE TABLE IF NOT EXISTS employment(
     area TEXT NOT NULL,
+    occu_code TEXT NOT NULL,
     occupation_major TEXT NOT NULL,
     total_employment INTEGER DEFAULT 0,
     sal_25_perc INTEGER DEFAULT 0);""")
@@ -74,8 +74,8 @@ def setup_db(cursor: sqlite3.Cursor):
 # Populates new database with information from occupational data
 def populate_employment(cursor: sqlite3.Cursor, employment):
     for item in employment.values:
-        cursor.execute("""INSERT INTO EMPLOYMENT (area, occupation_major, total_employment, sal_25_perc) 
-        VALUES (?, ?, ?, ?)""", (item[1], item[8], item[11], item[19]))
+        cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, sal_25_perc) 
+        VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[11], item[24]))
 
 
 # Populates the DB with the schools pulled from the API website
