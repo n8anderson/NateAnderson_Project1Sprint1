@@ -1,6 +1,8 @@
 import requests
 import secrets
 import sqlite3
+import pandas as pd
+import openpyxl
 from typing import Tuple
 
 
@@ -26,6 +28,12 @@ def get_data(url: str):
     return all_data
 
 
+# Getting data from excel sheet
+def get_xlsx(xlsx_file):
+    occu_data = pd.read_excel(xlsx_file, sheet_name='State_M2019_dl')
+    return occu_data
+
+
 # Opens DB
 def open_db(filename: str) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
     db_conn = sqlite3.connect(filename)  # Connect to a db or create a new one
@@ -37,6 +45,16 @@ def open_db(filename: str) -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
 def close_db(conn: sqlite3.Connection):
     conn.commit()  # Save changes
     conn.close()
+
+
+# Setup another table within the existing database of occupational data
+def setup_occdb(cursor: sqlite3.Cursor):
+    cursor.execute("""DROP TABLE IF EXISTS employment""")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS employment(
+    area TEXT NOT NULL,
+    occupation_major TEXT NOT NULL,
+    total_employment INTEGER DEFAULT 0,
+    sal_25_perc INTEGER DEFAULT 0);""")
 
 
 # Setup the database with a table called schools that holds all the data
@@ -51,6 +69,13 @@ def setup_db(cursor: sqlite3.Cursor):
     student_size_2017 INTEGER DEFAULT 0,
     earnings_2017 INTEGER DEFAULT 0,
     repayment_2016 INTEGER DEFAULT 0);""")
+
+
+# Populates new database with information from occupational data
+def populate_employment(cursor: sqlite3.Cursor, employment):
+    for item in employment.values:
+        cursor.execute("""INSERT INTO EMPLOYMENT (area, occupation_major, total_employment, sal_25_perc) 
+        VALUES (?, ?, ?, ?)""", (item[1], item[8], item[11], item[19]))
 
 
 # Populates the DB with the schools pulled from the API website
@@ -77,15 +102,18 @@ def next_page(page, total_page):
 
 # Main function that saves data from the website into a .txt file
 def main():
-    # f = open("School_Data.txt", "w")
     url = "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.degrees_awarded.predominant=2," \
           "3&fields=id,school.state,school.name,school.city,2018.student.size," \
           "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
           "2016.repayment.3_yr_repayment.overall"
-    all_data = get_data(url)
+    xls_file = 'state_M2019_dl.xlsx'
+    #all_data = get_data(url)
+    employment = get_xlsx(xls_file)
     conn, cursor = open_db('school_db.sqlite')
     setup_db(cursor)
-    populate_db(cursor, all_data)
+    #populate_db(cursor, all_data)
+    setup_occdb(cursor)
+    populate_employment(cursor, employment)
     close_db(conn)
 
 
