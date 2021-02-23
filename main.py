@@ -102,6 +102,7 @@ def next_page(page, total_page):
 
 
 # Main function that saves data from the website into a .txt file
+# Also populates a new table with data from excel sheet
 def main():
     url = "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.degrees_awarded.predominant=2," \
           "3&fields=id,school.state,school.name,school.city,2018.student.size," \
