@@ -74,8 +74,9 @@ def setup_db(cursor: sqlite3.Cursor):
 # Populates new database with information from occupational data
 def populate_employment(cursor: sqlite3.Cursor, employment):
     for item in employment.values:
-        cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, sal_25_perc)
-        VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[11], item[24]))
+        if item[9] == 'major':
+            cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, sal_25_perc)
+            VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[11], item[24]))
 
 
 # Populates the DB with the schools pulled from the API website

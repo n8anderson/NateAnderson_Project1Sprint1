@@ -13,3 +13,18 @@ if it gets over 1000 results. Passes if it is true
 
 test_db() - creates a test database, then adds one arbitrary entry to the database and checks to see
 if it was actually added. If it was true, then it passes.
+
+
+*** UPDATE 2/23/2021 ***
+
+Added new feature that pulls information from an excel sheet and saves it in the database as a new
+table.
+
+Two new tests to test functionality of the feature
+
+Updated requirements to include Pandas and Openpyxl
+
+test_getexcel() - Tests to see if we actually get the data from the excel sheet
+
+test_occudb() - Tests to see if data is pushed into a new table in the database, and can be 
+retrieved
