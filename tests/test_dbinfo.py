@@ -40,7 +40,7 @@ def test_occudb():
     for item in data:
         if not occu_titles.__contains__(item[2]):
             occu_titles.append(item[2])
-    assert len(occu_titles) == 50
+    assert len(occu_titles) == 2
 
 
 # Test to insert a school into a new database, and make sure it can be pulled
