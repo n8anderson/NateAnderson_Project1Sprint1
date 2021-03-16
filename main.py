@@ -118,7 +118,7 @@ def main():
     setup_db(cursor)
     setup_occdb(cursor)
     app = guiwindow.QApplication(sys.argv)
-    ex = guiwindow.Window(cursor, conn)
+    ex = guiwindow.Window(url, cursor, conn)
     sys.exit(app.exec_())
     # all_data = get_data(url)
     # employment = get_xlsx(xls_file)
