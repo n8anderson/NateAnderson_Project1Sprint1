@@ -2,6 +2,8 @@ import requests
 import secrets
 import sqlite3
 import pandas as pd
+import sys
+import guiwindow
 from typing import Tuple
 
 
@@ -101,6 +103,10 @@ def next_page(page, total_page):
         return True
 
 
+def commit_changes(conn):
+    conn.commit()
+
+
 # Main function that saves data from the website into a .txt file
 # Also populates a new table with data from excel sheet
 def main():
@@ -108,15 +114,18 @@ def main():
           "3&fields=id,school.state,school.name,school.city,2018.student.size," \
           "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
           "2016.repayment.3_yr_repayment.overall"
-    xls_file = 'state_M2019_dl.xlsx'
-    all_data = get_data(url)
-    employment = get_xlsx(xls_file)
     conn, cursor = open_db('school_db.sqlite')
     setup_db(cursor)
-    populate_db(cursor, all_data)
     setup_occdb(cursor)
-    populate_employment(cursor, employment)
-    close_db(conn)
+    app = guiwindow.QApplication(sys.argv)
+    ex = guiwindow.Window(cursor, conn)
+    sys.exit(app.exec_())
+    # all_data = get_data(url)
+    # employment = get_xlsx(xls_file)
+    # populate_db(cursor, all_data)
+    # populate_employment(cursor, employment)
+
+
 
 
 # If running to get functions dont run main
