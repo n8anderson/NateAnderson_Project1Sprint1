@@ -38,6 +38,7 @@ class Window(QMainWindow):
 
         self.set_file_button.clicked.connect(self.set_file)
         self.close_button.clicked.connect(self.close_program)
+        self.api_button.clicked.connect(self.populate_api)
 
         self.api_warning.setText('Warning: This will take a long time!')
         self.api_warning2.setText('Gets Data from API website')
@@ -48,8 +49,13 @@ class Window(QMainWindow):
         self.show()
 
     def populate_api(self):
-        school_data = main.get_data(self.url)
-        main.populate_db(self.cursor, school_data)
+        try:
+            school_data = main.get_data(self.url)
+            main.populate_db(self.cursor, school_data)
+            main.commit_changes(self.conn)
+        except Exception:
+            traceback.print_exc()
+
 
     def close_program(self):
         main.close_db(self.conn)

@@ -70,27 +70,31 @@ def setup_db(cursor: sqlite3.Cursor):
     student_size_2018 INTEGER DEFAULT 0,
     student_size_2017 INTEGER DEFAULT 0,
     earnings_2017 INTEGER DEFAULT 0,
-    repayment_2016 INTEGER DEFAULT 0);""")
+    repayment_2016 INTEGER DEFAULT 0,
+    repayment_2016_declining INTEGER DEFAULT 0);""")
 
 
 # Populates new database with information from occupational data
 def populate_employment(cursor: sqlite3.Cursor, employment):
     for item in employment.values:
         if item[9] == 'major':
-            cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, sal_25_perc)
-            VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[11], item[24]))
+            if item[7][0] != '3' and item[7][0] != '4':
+                cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, sal_25_perc)
+                VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[11], item[24]))
 
 
 # Populates the DB with the schools pulled from the API website
 def populate_db(cursor: sqlite3.Cursor, schools):
     for item in schools:
         cursor.execute("""INSERT INTO SCHOOLS (school_id, school_name, school_state, school_city,
-        student_size_2018, student_size_2017, earnings_2017, repayment_2016) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        student_size_2018, student_size_2017, earnings_2017, repayment_2016, repayment_2016_declining)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                        (item['id'], item['school.name'], item['school.state'], item['school.city'],
                         item['2018.student.size'],
                         item['2017.student.size'],
                         item['2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line'],
-                        item['2016.repayment.3_yr_repayment.overall']))
+                        item['2016.repayment.3_yr_repayment.overall'],
+                        item['2016.repayment.repayment_cohort.3_year_declining_balance']))
 
 
 # Checks to see whether there is another page to pull data from
@@ -113,7 +117,7 @@ def main():
     url = "https://api.data.gov/ed/collegescorecard/v1/schools.json?school.degrees_awarded.predominant=2," \
           "3&fields=id,school.state,school.name,school.city,2018.student.size," \
           "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
-          "2016.repayment.3_yr_repayment.overall"
+          "2016.repayment.3_yr_repayment.overall,2016.repayment.repayment_cohort.3_year_declining_balance"
     conn, cursor = open_db('school_db.sqlite')
     setup_db(cursor)
     setup_occdb(cursor)
