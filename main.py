@@ -4,7 +4,13 @@ import sqlite3
 import pandas as pd
 import sys
 import guiwindow
+import plotly.graph_objs as go
+import plotly.io as pio
+from plotly.offline import init_notebook_mode, iplot
 from typing import Tuple
+
+init_notebook_mode(connected=True)
+pio.renderers.default = 'browser'
 
 
 # Actually gets the data from one page and saves it to an array
@@ -27,6 +33,113 @@ def get_data(url: str):
             page += 1
     print("Finished Loading.")
     return all_data
+
+
+def generate_map(conn):
+    us_state_abbrev = {
+        'Alabama': 'AL',
+        'Alaska': 'AK',
+        'American Samoa': 'AS',
+        'Arizona': 'AZ',
+        'Arkansas': 'AR',
+        'California': 'CA',
+        'Colorado': 'CO',
+        'Connecticut': 'CT',
+        'Delaware': 'DE',
+        'District of Columbia': 'DC',
+        'Florida': 'FL',
+        'Georgia': 'GA',
+        'Guam': 'GU',
+        'Hawaii': 'HI',
+        'Idaho': 'ID',
+        'Illinois': 'IL',
+        'Indiana': 'IN',
+        'Iowa': 'IA',
+        'Kansas': 'KS',
+        'Kentucky': 'KY',
+        'Louisiana': 'LA',
+        'Maine': 'ME',
+        'Maryland': 'MD',
+        'Massachusetts': 'MA',
+        'Michigan': 'MI',
+        'Minnesota': 'MN',
+        'Mississippi': 'MS',
+        'Missouri': 'MO',
+        'Montana': 'MT',
+        'Nebraska': 'NE',
+        'Nevada': 'NV',
+        'New Hampshire': 'NH',
+        'New Jersey': 'NJ',
+        'New Mexico': 'NM',
+        'New York': 'NY',
+        'North Carolina': 'NC',
+        'North Dakota': 'ND',
+        'Northern Mariana Islands': 'MP',
+        'Ohio': 'OH',
+        'Oklahoma': 'OK',
+        'Oregon': 'OR',
+        'Pennsylvania': 'PA',
+        'Puerto Rico': 'PR',
+        'Rhode Island': 'RI',
+        'South Carolina': 'SC',
+        'South Dakota': 'SD',
+        'Tennessee': 'TN',
+        'Texas': 'TX',
+        'Utah': 'UT',
+        'Vermont': 'VT',
+        'Virgin Islands': 'VI',
+        'Virginia': 'VA',
+        'Washington': 'WA',
+        'West Virginia': 'WV',
+        'Wisconsin': 'WI',
+        'Wyoming': 'WY'
+    }
+
+    employ_df = pd.read_sql_query("SELECT * from employment", conn)
+    employ_df.info()
+    for item in employ_df.values:
+        employ_df['area'] = employ_df['area'].replace(item[0], us_state_abbrev[item[0]])
+
+    school_df = pd.read_sql_query("SELECT * from schools", conn)
+    num_jobs = {}
+    for item in employ_df.values:
+        num_jobs[item[0]] = 0
+    for item in employ_df.values:
+        num_jobs[item[0]] += item[3]
+
+    print(num_jobs)
+
+    state_data = {}
+    for item in school_df.values:
+        state_data[item[2]] = 0
+    for item in school_df.values:
+        state_data[item[2]] += item[4]
+    for item in state_data:
+        state_data[item] = state_data[item] // 4
+
+    jobs_final_dict = {'states': num_jobs.keys(), 'jobs': num_jobs.values()}
+    school_final_dict = {'states': state_data.keys(), 'grads': state_data.values()}
+    jobs_final_df = pd.DataFrame(jobs_final_dict, columns=['states', 'jobs'])
+    school_final_df = pd.DataFrame(school_final_dict, columns=['states', 'grads'])
+
+    data = dict(type='choropleth', colorscale='Viridis', locations=school_final_df['states'],
+                locationmode='USA-states', z=(school_final_df['grads'] // 4), text=school_final_df['states'],
+                colorbar={'title': 'Graduates'})
+    layout = dict(title='Graduates', geo=dict(projection={'type': 'mercator'}))
+    choromap = go.Figure(data=[data], layout=layout)
+    choromap.update_geos(visible=False, resolution=50, scope='north america', showcountries=True, countrycolor='Black',
+                         showsubunits=True, subunitcolor='Black')
+
+    jobs_data = dict(type='choropleth', colorscale='Viridis', locations=jobs_final_df['states'],
+                     locationmode='USA-states', z=(jobs_final_df['jobs']), text=jobs_final_df['states'],
+                     colorbar={'title': 'Jobs'})
+    jobs_layout = dict(title='Jobs', geo=dict(projection={'type': 'mercator'}))
+    jobs_choromap = go.Figure(data=[jobs_data], layout=jobs_layout)
+    jobs_choromap.update_geos(visible=False, resolution=50, scope='north america', showcountries=True,
+                              countrycolor='Black',
+                              showsubunits=True, subunitcolor='Black')
+    iplot(jobs_choromap, validate=True)
+    iplot(choromap, validate=True)
 
 
 # Getting data from excel sheet
@@ -80,7 +193,7 @@ def populate_employment(cursor: sqlite3.Cursor, employment):
         if item[9] == 'major':
             if item[7][0] != '3' and item[7][0] != '4':
                 cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, sal_25_perc)
-                VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[11], item[24]))
+                VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[10], item[24]))
 
 
 # Populates the DB with the schools pulled from the API website
@@ -119,8 +232,8 @@ def main():
           "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
           "2016.repayment.3_yr_repayment.overall,2016.repayment.repayment_cohort.3_year_declining_balance"
     conn, cursor = open_db('school_db.sqlite')
-    setup_db(cursor)
-    setup_occdb(cursor)
+    # setup_db(cursor)
+    # setup_occdb(cursor)
     app = guiwindow.QApplication(sys.argv)
     ex = guiwindow.Window(url, cursor, conn)
     sys.exit(app.exec_())
@@ -128,8 +241,6 @@ def main():
     # employment = get_xlsx(xls_file)
     # populate_db(cursor, all_data)
     # populate_employment(cursor, employment)
-
-
 
 
 # If running to get functions dont run main

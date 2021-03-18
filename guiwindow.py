@@ -13,6 +13,7 @@ class Window(QMainWindow):
         self.set_file_button = QPushButton('Set File', self)
         self.close_button = QPushButton('Exit', self)
         self.api_button = QPushButton('Populate API Data', self)
+        self.map_button = QPushButton('Generate Map Data', self)
         self.textbox = QLineEdit(self)
         self.title = 'Job and School Data'
         self.file_label = QLabel(self)
@@ -35,10 +36,12 @@ class Window(QMainWindow):
         self.set_file_button.move(49, 70)
         self.close_button.move(350, 550)
         self.api_button.move(49, 110)
+        self.map_button.move(49, 170)
 
         self.set_file_button.clicked.connect(self.set_file)
         self.close_button.clicked.connect(self.close_program)
         self.api_button.clicked.connect(self.populate_api)
+        self.map_button.clicked.connect(self.generate_map)
 
         self.api_warning.setText('Warning: This will take a long time!')
         self.api_warning2.setText('Gets Data from API website')
@@ -48,6 +51,12 @@ class Window(QMainWindow):
         self.file_label.setGeometry(50, 3, 80, 80)
         self.show()
 
+    def generate_map(self):
+        try:
+            main.generate_map(self.conn)
+        except Exception:
+            traceback.print_exc()
+
     def populate_api(self):
         try:
             school_data = main.get_data(self.url)
@@ -55,7 +64,6 @@ class Window(QMainWindow):
             main.commit_changes(self.conn)
         except Exception:
             traceback.print_exc()
-
 
     def close_program(self):
         main.close_db(self.conn)
@@ -69,4 +77,3 @@ class Window(QMainWindow):
             main.commit_changes(self.conn)
         except FileNotFoundError:
             traceback.print_exc()
-
