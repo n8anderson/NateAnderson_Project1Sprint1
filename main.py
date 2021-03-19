@@ -31,23 +31,7 @@ def get_data(url: str):
     return all_data
 
 
-def get_school_list(conn: sqlite3.Connection):
-    school_data = pd.read_sql_query("SELECT * FROM schools", conn)
-    school_list = []
-    for item in school_data.values:
-        temp_list = [item[1], item[2], item[4], item[8]]
-        school_list.append(temp_list)
-    return school_list
-
-
-def get_jobs_list(conn: sqlite3.Connection):
-    jobs_data = pd.read_sql_query("SELECT * FROM employment", conn)
-    jobs_list = []
-    for item in jobs_data.values:
-        jobs_list.append(item)
-    return jobs_list
-
-
+# Gets the abbreviations for each state (as heat maps only like abbreviations)
 def get_abbrev(key):
     us_state_abbrev = {
         'Alabama': 'AL',
@@ -111,10 +95,12 @@ def get_abbrev(key):
     return us_state_abbrev[key]
 
 
+# Gets the employment data from sql
 def get_from_employment(conn):
     return pd.read_sql_query("SELECT * from employment", conn)
 
 
+# Returns the desired ratio
 def get_ratio(x_ratio, y_ratio):
     ratio = {}
     for item in x_ratio.keys():
@@ -124,6 +110,7 @@ def get_ratio(x_ratio, y_ratio):
     return ratio_df
 
 
+# Returns the average salaries for all of the states and territories
 def get_average_salaries(conn):
     salary_df = get_from_employment(conn)
     for item in salary_df.values:
@@ -144,6 +131,7 @@ def get_average_salaries(conn):
     return average_salaries
 
 
+# Returns the average repayment values for all of the states and territories
 def get_repayment_values(conn):
     repayment_df = pd.read_sql_query("SELECT * from schools", conn)
     repayment_values = {}
@@ -163,6 +151,7 @@ def get_repayment_values(conn):
     return repayment_values
 
 
+# Generates a heat map for the average salaries throughout the US
 def generate_wage_map(conn):
     average_salaries = get_average_salaries(conn)
 
@@ -183,6 +172,7 @@ def generate_wage_map(conn):
     iplot(ratio_map, validate=True)
 
 
+# Gets the data from employment library and returns the dictionary
 def get_employment(conn):
     employ_df = get_from_employment(conn)
     for item in employ_df.values:
@@ -195,6 +185,7 @@ def get_employment(conn):
     return num_jobs
 
 
+# Gets the data from the school library and returns the dictionary
 def get_school_data(conn):
     school_df = pd.read_sql_query("SELECT * from schools", conn)
     state_data = {}
@@ -207,6 +198,7 @@ def get_school_data(conn):
     return state_data
 
 
+# Generating the heat map based off of the data that is pulled
 def generate_map(conn):
     num_jobs = get_employment(conn)
 
@@ -221,7 +213,6 @@ def generate_map(conn):
     choromap = go.Figure(data=[data], layout=layout)
     choromap.update_geos(visible=False, resolution=50, scope='north america', showcountries=True, countrycolor='Black',
                          showsubunits=True, subunitcolor='Black')
-
     iplot(choromap, validate=True)
 
 
@@ -316,16 +307,12 @@ def main():
           "2017.student.size,2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line," \
           "2016.repayment.3_yr_repayment.overall,2016.repayment.repayment_cohort.3_year_declining_balance"
     conn, cursor = open_db('school_db.sqlite')
-    # setup_db(cursor)
-    # setup_occdb(cursor)
+    setup_db(cursor)
+    setup_occdb(cursor)
     app = guiwindow.QApplication(sys.argv)
     ex = guiwindow.Window(url, cursor, conn)
-    print(ex)
+    ex.isHidden()
     sys.exit(app.exec_())
-    # all_data = get_data(url)
-    # employment = get_xlsx(xls_file)
-    # populate_db(cursor, all_data)
-    # populate_employment(cursor, employment)
 
 
 # If running to get functions dont run main

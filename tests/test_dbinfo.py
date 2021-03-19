@@ -45,12 +45,13 @@ def test_occudb():
 
 # Test to insert a school into a new database, and make sure it can be pulled
 def test_db():
-    schools = [{'id': '1234', 'school.state': 'MA', 'school.name': 'Bridgewater State University',
+    schools = [{'id': '1234', 'school.state': 'AL', 'school.name': 'Alabama State University',
                 'school.city': 'Bridgewater',
                 '2018.student.size': 10000,
                 '2017.student.size': 9000,
                 '2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line': 500,
-                '2016.repayment.3_yr_repayment.overall': 100}]
+                '2016.repayment.3_yr_repayment.overall': 100,
+                '2016.repayment.repayment_cohort.3_year_declining_balance': 0.56}]
     conn, cursor = main.open_db('test_db.sqlite')
     main.setup_db(cursor)
     main.populate_db(cursor, schools)
@@ -58,3 +59,28 @@ def test_db():
     data = cursor.fetchone()
     main.close_db(conn)
     assert data[1] == 'Bridgewater State University'
+
+
+# This test will pull test data from the test databases, and check to see if they are actually entered into the
+# proper array. If the length of the array is greater than 0, then the entry is correct and the test passes
+def test_getratios():
+    schools = [{'id': '1234', 'school.state': 'MA', 'school.name': 'Bridgewater State University',
+                'school.city': 'Bridgewater',
+                '2018.student.size': 10000,
+                '2017.student.size': 9000,
+                '2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line': 500,
+                '2016.repayment.3_yr_repayment.overall': 100,
+                '2016.repayment.repayment_cohort.3_year_declining_balance': 0.56}]
+    excel_file = 'data_testfile.xlsx'
+    test_data = main.get_xlsx(excel_file)
+    conn, cursor = main.open_db('test_db.sqlite')
+    main.setup_db(cursor)
+    main.setup_occdb(cursor)
+    main.populate_db(cursor, schools)
+    main.populate_employment(cursor, test_data)
+
+    salaries = main.get_ratio(main.get_repayment_values(conn), main.get_average_salaries(conn))
+    grads = main.get_ratio(main.get_school_data(conn), main.get_employment(conn))
+
+    assert len(salaries.values()) > 0
+    assert len(grads.values()) > 0

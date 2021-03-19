@@ -11,6 +11,7 @@ class Window(QMainWindow):
         self.close_button = QPushButton('Exit', self)
         self.api_button = QPushButton('Populate API Data', self)
         self.map_button = QPushButton('Generate Grad Data', self)
+        self.make_table = QPushButton('Generate Table', self)
         self.ascending_order = QPushButton('Sort Ascending', self)
         self.descending_order = QPushButton('Sort Descending', self)
         self.wage_map = QPushButton('Generate Wage Map', self)
@@ -39,6 +40,7 @@ class Window(QMainWindow):
         self.textbox.move(50, 50)
         self.textbox.resize(120, 20)
 
+        self.make_table.move(250, 450)
         self.set_file_button.move(49, 70)
         self.close_button.move(350, 550)
         self.api_button.move(49, 110)
@@ -47,6 +49,7 @@ class Window(QMainWindow):
         self.descending_order.move(150, 450)
         self.wage_map.move(150, 170)
 
+        self.make_table.clicked.connect(self.set_jobs_table)
         self.set_file_button.clicked.connect(self.set_file)
         self.close_button.clicked.connect(self.close_program)
         self.api_button.clicked.connect(self.populate_api)
@@ -76,41 +79,43 @@ class Window(QMainWindow):
         main.generate_map(self.conn)
 
     def set_jobs_table(self):
-        salaries = main.get_ratio(main.get_repayment_values(self.conn), main.get_average_salaries(self.conn))
-        grads = main.get_ratio(main.get_school_data(self.conn), main.get_employment(self.conn))
-        headers = ['State', 'Salaries vs Declining Balance', 'Number of Jobs Per Grad']
-        state_list = []
-        salaries_list = []
-        grads_list = []
-        combined_list = []
-        for item in salaries['states']:
-            state_list.append(item)
-        for item in salaries['ratio']:
-            salaries_list.append(item)
-        for item in grads['ratio']:
-            grads_list.append(item)
-        for i in range(len(salaries['states'])):
-            temp_list = [state_list[i], salaries_list[i], grads_list[i]]
-            combined_list.append(temp_list)
+        try:
+            salaries = main.get_ratio(main.get_repayment_values(self.conn), main.get_average_salaries(self.conn))
+            grads = main.get_ratio(main.get_school_data(self.conn), main.get_employment(self.conn))
+            headers = ['State', 'Salaries vs Declining Balance', 'Number of Jobs Per Grad']
+            state_list = []
+            salaries_list = []
+            grads_list = []
+            combined_list = []
+            for item in salaries['states']:
+                state_list.append(item)
+            for item in salaries['ratio']:
+                salaries_list.append(item)
+            for item in grads['ratio']:
+                grads_list.append(item)
+            for i in range(len(salaries['states'])):
+                temp_list = [state_list[i], salaries_list[i], grads_list[i]]
+                combined_list.append(temp_list)
 
-        row_count = len(combined_list)
-        col_count = len(combined_list[0])
+            row_count = len(combined_list)
+            col_count = len(combined_list[0])
 
-        self.jobs_table.setRowCount(row_count)
-        self.jobs_table.setColumnCount(col_count)
+            self.jobs_table.setRowCount(row_count)
+            self.jobs_table.setColumnCount(col_count)
 
-        self.jobs_table.setHorizontalHeaderLabels(headers)
-        for row in range(row_count):
-            for col in range(col_count):
-                item = combined_list[row][col]
-                self.jobs_table.setItem(row, col, QTableWidgetItem(str(item)))
+            self.jobs_table.setHorizontalHeaderLabels(headers)
+            for row in range(row_count):
+                for col in range(col_count):
+                    item = combined_list[row][col]
+                    self.jobs_table.setItem(row, col, QTableWidgetItem(str(item)))
+        except IndexError:
+            pass
 
     def populate_api(self):
         try:
             school_data = main.get_data(self.url)
             main.populate_db(self.cursor, school_data)
             main.commit_changes(self.conn)
-            self.set_school_table()
         except FileNotFoundError:
             print('File Not Found')
 
