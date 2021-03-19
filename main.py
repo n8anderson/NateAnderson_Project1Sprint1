@@ -35,7 +35,24 @@ def get_data(url: str):
     return all_data
 
 
-def generate_map(conn):
+def get_school_list(conn: sqlite3.Connection):
+    school_data = pd.read_sql_query("SELECT * FROM schools", conn)
+    school_list = []
+    for item in school_data.values:
+        temp_list = [item[1], item[2], item[4], item[8]]
+        school_list.append(temp_list)
+    return school_list
+
+
+def get_jobs_list(conn: sqlite3.Connection):
+    jobs_data = pd.read_sql_query("SELECT * FROM employment", conn)
+    jobs_list = []
+    for item in jobs_data.values:
+        jobs_list.append(item)
+    return jobs_list
+
+
+def get_abbrev(key):
     us_state_abbrev = {
         'Alabama': 'AL',
         'Alaska': 'AK',
@@ -95,20 +112,95 @@ def generate_map(conn):
         'Wyoming': 'WY'
     }
 
-    employ_df = pd.read_sql_query("SELECT * from employment", conn)
-    employ_df.info()
-    for item in employ_df.values:
-        employ_df['area'] = employ_df['area'].replace(item[0], us_state_abbrev[item[0]])
+    return us_state_abbrev[key]
 
-    school_df = pd.read_sql_query("SELECT * from schools", conn)
+
+def get_from_employment(conn):
+    return pd.read_sql_query("SELECT * from employment", conn)
+
+
+def get_ratio(x_ratio, y_ratio):
+    ratio = {}
+    for item in x_ratio.keys():
+        if y_ratio.__contains__(item):
+            ratio[item] = y_ratio[item] / x_ratio[item]
+    ratio_df = {'states': ratio.keys(), 'ratio': ratio.values()}
+    return ratio_df
+
+
+def get_average_salaries(conn):
+    salary_df = get_from_employment(conn)
+    for item in salary_df.values:
+        salary_df['area'] = salary_df['area'].replace(item[0], get_abbrev(item[0]))
+
+    counts = {}
+    average_salaries = {}
+    for item in salary_df.values:
+        average_salaries[item[0]] = 0
+        counts[item[0]] = 0
+    for item in salary_df.values:
+        if type(item[4]) is int:
+            average_salaries[item[0]] += item[4]
+            counts[item[0]] += 1
+    for item in average_salaries:
+        average_salaries[item] /= counts[item]
+
+    return average_salaries
+
+
+def get_repayment_values(conn):
+    repayment_df = pd.read_sql_query("SELECT * from schools", conn)
+    repayment_values = {}
+    counts = {}
+    for item in repayment_df.values:
+        repayment_values[item[2]] = 0
+        counts[item[2]] = 0
+    for item in repayment_df.values:
+        if str(item[8]) != 'nan':
+            repayment_values[item[2]] += float(item[8])
+            counts[item[2]] += 1
+
+    for item in repayment_values:
+        if counts[item] != 0:
+            repayment_values[item] /= counts[item]
+
+    return repayment_values
+
+
+def generate_wage_map(conn):
+    average_salaries = get_average_salaries(conn)
+
+    repayment_values = get_repayment_values(conn)
+
+    wage_ratio = get_ratio(repayment_values, average_salaries)
+    wage_ratio_df = pd.DataFrame(wage_ratio, columns=['states', 'ratio'])
+
+    ratio_data = dict(type='choropleth', colorscale='Viridis', locations=wage_ratio_df['states'],
+                      locationmode='USA-states', z=(wage_ratio_df['ratio']), text=wage_ratio_df['states'],
+                      colorbar={'title': 'Salaries Considering Declining Balance'})
+    ratio_layout = dict(title='Salaries Vs Declining Balance', geo=dict(projection={'type': 'mercator'}))
+    ratio_map = go.Figure(data=[ratio_data], layout=ratio_layout)
+    ratio_map.update_geos(visible=False, resolution=50, scope='north america', showcountries=True,
+                          countrycolor='Black',
+                          showsubunits=True, subunitcolor='Blue')
+
+    iplot(ratio_map, validate=True)
+
+
+def get_employment(conn):
+    employ_df = get_from_employment(conn)
+    for item in employ_df.values:
+        employ_df['area'] = employ_df['area'].replace(item[0], get_abbrev(item[0]))
     num_jobs = {}
     for item in employ_df.values:
         num_jobs[item[0]] = 0
     for item in employ_df.values:
         num_jobs[item[0]] += item[3]
+    return num_jobs
 
-    print(num_jobs)
 
+def get_school_data(conn):
+    school_df = pd.read_sql_query("SELECT * from schools", conn)
     state_data = {}
     for item in school_df.values:
         state_data[item[2]] = 0
@@ -116,29 +208,24 @@ def generate_map(conn):
         state_data[item[2]] += item[4]
     for item in state_data:
         state_data[item] = state_data[item] // 4
+    return state_data
 
-    jobs_final_dict = {'states': num_jobs.keys(), 'jobs': num_jobs.values()}
-    school_final_dict = {'states': state_data.keys(), 'grads': state_data.values()}
-    jobs_final_df = pd.DataFrame(jobs_final_dict, columns=['states', 'jobs'])
-    school_final_df = pd.DataFrame(school_final_dict, columns=['states', 'grads'])
 
-    data = dict(type='choropleth', colorscale='Viridis', locations=school_final_df['states'],
-                locationmode='USA-states', z=(school_final_df['grads'] // 4), text=school_final_df['states'],
-                colorbar={'title': 'Graduates'})
-    layout = dict(title='Graduates', geo=dict(projection={'type': 'mercator'}))
+def generate_map(conn):
+    num_jobs = get_employment(conn)
+
+    state_data = get_school_data(conn)
+
+    employment_dict = get_ratio(state_data, num_jobs)
+    employment_df = pd.DataFrame(employment_dict, columns=['states', 'ratio'])
+    data = dict(type='choropleth', colorscale='Viridis', locations=employment_df['states'],
+                locationmode='USA-states', z=(employment_df['ratio']), text=employment_df['states'],
+                colorbar={'title': 'Jobs per Graduate'})
+    layout = dict(title='Jobs Per Graduate', geo=dict(projection={'type': 'mercator'}))
     choromap = go.Figure(data=[data], layout=layout)
     choromap.update_geos(visible=False, resolution=50, scope='north america', showcountries=True, countrycolor='Black',
                          showsubunits=True, subunitcolor='Black')
 
-    jobs_data = dict(type='choropleth', colorscale='Viridis', locations=jobs_final_df['states'],
-                     locationmode='USA-states', z=(jobs_final_df['jobs']), text=jobs_final_df['states'],
-                     colorbar={'title': 'Jobs'})
-    jobs_layout = dict(title='Jobs', geo=dict(projection={'type': 'mercator'}))
-    jobs_choromap = go.Figure(data=[jobs_data], layout=jobs_layout)
-    jobs_choromap.update_geos(visible=False, resolution=50, scope='north america', showcountries=True,
-                              countrycolor='Black',
-                              showsubunits=True, subunitcolor='Black')
-    iplot(jobs_choromap, validate=True)
     iplot(choromap, validate=True)
 
 
@@ -192,8 +279,8 @@ def populate_employment(cursor: sqlite3.Cursor, employment):
     for item in employment.values:
         if item[9] == 'major':
             if item[7][0] != '3' and item[7][0] != '4':
-                cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, sal_25_perc)
-                VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[10], item[24]))
+                cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, 
+                sal_25_perc) VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[10], item[24]))
 
 
 # Populates the DB with the schools pulled from the API website
@@ -236,6 +323,7 @@ def main():
     # setup_occdb(cursor)
     app = guiwindow.QApplication(sys.argv)
     ex = guiwindow.Window(url, cursor, conn)
+    print(ex)
     sys.exit(app.exec_())
     # all_data = get_data(url)
     # employment = get_xlsx(xls_file)
