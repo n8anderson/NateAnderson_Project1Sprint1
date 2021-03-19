@@ -289,7 +289,8 @@ def populate_db(cursor: sqlite3.Cursor, schools):
         cursor.execute("""INSERT INTO SCHOOLS (school_id, school_name, school_state, school_city,
         student_size_2018, student_size_2017, earnings_2017, repayment_2016, repayment_2016_declining)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                       (item['id'], item['school.name'], item['school.state'], item['school.city'],
+                       (item['id'], item['school.name'], item['school.state'],
+                        item['school.city'],
                         item['2018.student.size'],
                         item['2017.student.size'],
                         item['2017.earnings.3_yrs_after_completion.overall_count_over_poverty_line'],
