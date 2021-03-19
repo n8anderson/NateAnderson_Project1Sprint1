@@ -45,7 +45,7 @@ def test_occudb():
 
 # Test to insert a school into a new database, and make sure it can be pulled
 def test_db():
-    schools = [{'id': '1234', 'school.state': 'AL', 'school.name': 'Alabama State University',
+    schools = [{'id': '1234', 'school.state': 'MA', 'school.name': 'Bridgewater State University',
                 'school.city': 'Bridgewater',
                 '2018.student.size': 10000,
                 '2017.student.size': 9000,
@@ -64,7 +64,7 @@ def test_db():
 # This test will pull test data from the test databases, and check to see if they are actually entered into the
 # proper array. If the length of the array is greater than 0, then the entry is correct and the test passes
 def test_getratios():
-    schools = [{'id': '1234', 'school.state': 'MA', 'school.name': 'Bridgewater State University',
+    schools = [{'id': '1234', 'school.state': 'AL', 'school.name': 'Bridgewater State University',
                 'school.city': 'Bridgewater',
                 '2018.student.size': 10000,
                 '2017.student.size': 9000,
