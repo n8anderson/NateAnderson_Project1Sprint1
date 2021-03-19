@@ -1,7 +1,6 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidget, QPushButton, QLineEdit, QTableWidgetItem, QLabel
 import main
-import traceback
 
 
 class Window(QMainWindow):
@@ -113,7 +112,7 @@ class Window(QMainWindow):
             main.commit_changes(self.conn)
             self.set_school_table()
         except FileNotFoundError:
-            traceback.print_exc()
+            print('File Not Found')
 
     def close_program(self):
         main.close_db(self.conn)
@@ -127,4 +126,4 @@ class Window(QMainWindow):
             main.commit_changes(self.conn)
             self.set_jobs_table()
         except FileNotFoundError:
-            traceback.print_exc()
+            print('File Not Found')
