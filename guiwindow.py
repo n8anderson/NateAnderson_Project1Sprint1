@@ -10,7 +10,7 @@ class Window(QMainWindow):
         self.set_file_button = QPushButton('Set File', self)
         self.close_button = QPushButton('Exit', self)
         self.api_button = QPushButton('Populate API Data', self)
-        self.map_button = QPushButton('Generate Map Data', self)
+        self.map_button = QPushButton('Generate Grad Data', self)
         self.ascending_order = QPushButton('Sort Ascending', self)
         self.descending_order = QPushButton('Sort Descending', self)
         self.wage_map = QPushButton('Generate Wage Map', self)
