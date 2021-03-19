@@ -279,7 +279,7 @@ def populate_employment(cursor: sqlite3.Cursor, employment):
     for item in employment.values:
         if item[9] == 'major':
             if item[7][0] != '3' and item[7][0] != '4':
-                cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment, 
+                cursor.execute("""INSERT INTO EMPLOYMENT (area, occu_code, occupation_major, total_employment,
                 sal_25_perc) VALUES (?, ?, ?, ?, ?)""", (item[1], item[7], item[8], item[10], item[24]))
 
 
