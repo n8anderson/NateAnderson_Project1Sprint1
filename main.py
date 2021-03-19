@@ -9,10 +9,6 @@ import plotly.io as pio
 from plotly.offline import init_notebook_mode, iplot
 from typing import Tuple
 
-init_notebook_mode(connected=True)
-pio.renderers.default = 'browser'
-
-
 # Actually gets the data from one page and saves it to an array
 def get_data(url: str):
     all_data = []
